@@ -15,11 +15,13 @@ app.use(cors());
 const db = knex({
   client: 'pg', // must npm install pg
   connection: {
-    host : '127.0.0.1',
-    port : 5432,
-    user : 'canaantm',
-    password : '',
-    database : 'twotter'
+    host: process.env.DATABASE_URL,
+    ssl: true
+    // host : '127.0.0.1',
+    // port : 5432,
+    // user : 'canaantm',
+    // password : '',
+    // database : 'twotter'
   }
 }); 
 
