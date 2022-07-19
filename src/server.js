@@ -16,7 +16,9 @@ const db = knex({
   client: 'pg', // must npm install pg
   connection: {
     connectionString: process.env.DATABASE_URL,
-    ssl: true
+    ssl: {
+      rejectUnauthorized: false
+    }
     // host : '127.0.0.1',
     // port : 5432,
     // user : 'canaantm',
