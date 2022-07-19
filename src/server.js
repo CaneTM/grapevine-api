@@ -100,6 +100,10 @@ app.get('/posts/:user', (req, res) => {
     .catch(err => res.json(err));
 })
 
+app.get('/', (req, res) => {
+  res.json('Server running...');
+})
+
 
 app.listen(process.env.PORT || port, () => {
   console.log("Server running...");
