@@ -15,6 +15,7 @@ app.use(cors());
 const db = knex({
   client: 'pg', // must npm install pg
   connection: {
+    // heroku server has its own env vars
     connectionString: process.env.DATABASE_URL,
     ssl: {
       rejectUnauthorized: false
