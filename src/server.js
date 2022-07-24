@@ -13,7 +13,7 @@ app.use(express.json());
 app.use(cors());
 
 const db = knex({
-  client: 'pg', // must npm install pg
+  client: 'pg', 
   connection: {
     // heroku server has its own env vars
     connectionString: process.env.DATABASE_URL,
@@ -34,22 +34,33 @@ app.post('/login', (req, res) => {
   const { username, password } = req.body;
 
   if (username && password) {
-    db.select('username', 'hash')
-    .from('login')
-    .where('username', '=', username)
-    .then(userLoginData => { // stores data of selected user
-      const { hash } = userLoginData[0];
+    try {
+      db.select('username', 'hash')
+        .from('login')
+        .where('username', '=', username)
+        .then(userLoginData => { // stores data of selected user
 
-      bcrypt.compare(password, hash, (err, result) => {
-        if (result) {
-          res.json("success");
-        }
-        else {
-          res.status(400).json("incorrect username or password");
-        }
-      })
-    })
-    .catch(err => res.status(400).json("incorrect username or password"));
+          if (userLoginData.length) {
+            const { hash } = userLoginData[0];
+
+            bcrypt.compare(password, hash, (err, result) => {
+              if (result) {
+                res.json("success");
+              }
+              else {
+                res.status(400).json("incorrect username or password");
+              }
+            }) 
+          } 
+          else {
+            res.status(400).json("incorrect username or password");
+          }
+        })
+        .catch(err => res.status(400).json("incorrect username or password"));
+    }
+    catch (err) {
+      console.log(err);
+    }
   }
   else {
     res.json("please enter login info");
@@ -78,10 +89,12 @@ app.post('/signup', (req, res) => {
 app.post('/posts', (req, res) => {
   const { content, author, date, time } = req.body;
 
-  db.insert({content, author, date, time})
+  if (content) {
+    db.insert({content, author, date, time})
     .into('posts')
     .then(data => res.json('success'))
     .catch(err => res.json('error occurred'));
+  }
 });
 
 // part of a check to determine whether user exists
@@ -92,22 +105,29 @@ app.get('/user/:searchfield', (req, res) => {
     .from('login')
     .where('username', '=', searchfield)
     .then(searchedName => res.json(searchedName));
-})
+});
 
 // retrieve posts from specified user
 app.get('/posts/:user', (req, res) => {
   const { user } = req.params;
 
-  db.select('content', 'date', 'key', 'time')
+  db.select('*')
     .from('posts')
     .where('author', '=', user)
     .then(postData => res.json(postData))
     .catch(err => res.json(err));
-})
+});
+
+// retrieve posts from all users
+app.get('/posts', (req, res) => {
+  db.select('*')
+    .from('posts')
+    .then(postData => res.json(postData));
+});
 
 app.get('/', (req, res) => {
-  res.json('Server running...');
-})
+  res.send('Server running...');
+});
 
 
 app.listen(process.env.PORT || port, () => {
